@@ -3,6 +3,8 @@ INSTAZIPPER-JS :corn:
 
 **InstaZipper-JS** is a *bulk instagram image downloader* built with **HTML, [JQuery](https://jquery.com/), [FileSaver.js](https://github.com/eligrey/FileSaver.js/), [JSZip](https://stuk.github.io/jszip/)**, its completely on client-side, it wouldn't harm your server :beers:
 
+Original script : https://github.com/VicoErv/instazipper-js
+
 ----------
 
 Usage
