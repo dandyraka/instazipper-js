@@ -13,7 +13,8 @@ Usage
 <script type="text/javascript" src="node_modules/file-saver/FileSaver.js"></script>
 <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
 ```
-
+- known bug
+    - only support GraphImage
 ---
 The MIT License (MIT)
 =====================
