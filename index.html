@@ -1,110 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<input type="text" id="username" placeholder="username"><input type="submit" id="submit">
-<h1 id="count">0</h1>
-<table>
-    <thead>
-    <th>
-        max_id
-    </th>
-    <th>
-        ids
-    </th>
-    </thead>
-    <tbody>
-    <tr>
-        <td>
-            <pre id="max_id"></pre>
-        </td>
-        <td>
-            <pre id="ids"></pre>
-        </td>
-    </tr>
-    </tbody>
-</table>
-<script type="text/javascript" src="node_modules/jszip/dist/jszip.min.js" ></script>
-<script type="text/javascript" src="node_modules/file-saver/FileSaver.js"></script>
-<script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
-<script>
-    function convertImgToBase64URL(url, callback) {
-        var img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.onload = function () {
-            var canvas = document.createElement('CANVAS'),
-                ctx = canvas.getContext('2d'), dataURL;
-            canvas.height = this.height;
-            canvas.width = this.width;
-            ctx.drawImage(this, 0, 0);
-            dataURL = canvas.toDataURL();
-
-            callback(dataURL, url);
-            canvas = null;
-        };
-        img.src = url;
-    }
-
-    var images = [];
-
-    function createArchive(images){
-        // Use jszip
-        var zip = new JSZip();
-        var img = zip.folder("images");
-
-        for (var i=0; i<images.length; i++) {
-            img.file(i+".jpg", images[i].data, {base64: true});
-        }
-        zip.generateAsync({type:"blob"}).then(function(file){
-            saveAs(file, "images.zip");
-
-        })
-    }
-    var count = 0;
-    var username;
-    $("#submit").click(function() {
-        username = $("#username").val();
-        get("");
-    });
-
-    function get(max_id) {
-        $.ajax({
-            method: 'GET',
-            url: 'https://cors-anywhere.herokuapp.com/https://www.instagram.com/'+username+'/?__a=1&max_id=' + max_id,
-            dataType: 'text', //change the datatype to 'jsonp' works in most cases
-            success: function (res) {
-                var jData = JSON.parse(res);
-                var nodes = jData.user.media.nodes;
-                for (var i = 0; i < nodes.length; i++) {
-                    if (nodes[i].__typename === "GraphImage") {
-                        $("#ids").append(nodes[i].id + "\n");
-                        count++;
-                        $("#count").html(count.toString());
-                        convertImgToBase64URL(nodes[i].display_src, function (base64Img, url) {
-                            images.push({
-                                url: url,
-                                data: base64Img.split(",")[1]
-                            });
-                        });
-                    }
-                }
-
-                if(nodes.length > 0) {
-                    get(nodes[nodes.length - 1].id);
-                    $("#max_id").append(nodes[nodes.length - 1].id + "\n");
-                } else {
-                    createArchive(images);
-                }
-            },
-            error: function (data) {
-                alert("Error");
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>InstaZipper-JS</title>
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+      <!-- Optional theme -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+      <!-- Latest compiled and minified JavaScript -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+   </head>
+   <body>
+      <center>
+         <h2>InstaZipper</h2>
+         <small>Zip your pictures just one click away</small>
+         <br><br>
+         <div class="container">
+            <div class="row">
+               <div class="col-md-8  col-md-offset-2">
+                  <div class="col-auto">
+                     <label class="sr-only" for="username">Username</label>
+                     <div class="input-group mb-2 mb-sm-0">
+                        <div class="input-group-addon">@</div>
+                        <input type="text" class="form-control" id="username" placeholder="Username">
+                     </div>
+                  </div>
+                  <br>
+                  <div class="col-auto">
+                     <button type="submit" id="submit" class="btn btn-primary">Submit</button>
+                  </div>
+                  <h1 id="count">0</h1>
+                  <div class="panel panel-primary">
+                     <div class="table-responsive">
+                        <table class="table table-hover">
+                           <thead>
+                              <tr>
+                                 <th class="col-lg-3">
+                                    max_id
+                                 </th>
+                                 <th class="col-lg-3">
+                                    media_id
+                                 </th>
+                              </tr>
+                           </thead>
+                           <tbody>
+                              <tr>
+                                 <td>
+                                    <pre id="max_id"></pre>
+                                 </td>
+                                 <td>
+                                    <pre id="ids"></pre>
+                                 </td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <script type="text/javascript" src="node_modules/jszip/dist/jszip.min.js" ></script>
+         <script type="text/javascript" src="node_modules/file-saver/FileSaver.js"></script>
+         <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
+         <script>
+            function convertImgToBase64URL(url, callback) {
+                var img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = function () {
+                    var canvas = document.createElement('CANVAS'),
+                        ctx = canvas.getContext('2d'), dataURL;
+                    canvas.height = this.height;
+                    canvas.width = this.width;
+                    ctx.drawImage(this, 0, 0);
+                    dataURL = canvas.toDataURL();
+            
+                    callback(dataURL, url);
+                    canvas = null;
+                };
+                img.src = url;
             }
-        });
-    }
-
-</script>
-</body>
+            
+            var images = [];
+            
+            function createArchive(images){
+                // Use jszip
+                var zip = new JSZip();
+                var img = zip.folder("images");
+            
+                for (var i=0; i<images.length; i++) {
+                    img.file(i+".jpg", images[i].data, {base64: true});
+                }
+                zip.generateAsync({type:"blob"}).then(function(file){
+                    saveAs(file, "images.zip");
+            
+                })
+            }
+            var count = 0;
+            var username;
+            $("#submit").click(function() {
+                username = $("#username").val();
+                get("");
+            });
+            
+            function get(max_id) {
+                $.ajax({
+                    method: 'GET',
+                    url: 'https://cors-anywhere.herokuapp.com/https://www.instagram.com/'+username+'/?__a=1&max_id=' + max_id,
+                    dataType: 'text', //change the datatype to 'jsonp' works in most cases
+                    success: function (res) {
+                        var jData = JSON.parse(res);
+                        var nodes = jData.user.media.nodes;
+                        for (var i = 0; i < nodes.length; i++) {
+                            if (nodes[i].__typename === "GraphImage") {
+                                $("#ids").append(nodes[i].id + "\n");
+                                count++;
+                                $("#count").html(count.toString());
+                                convertImgToBase64URL(nodes[i].display_src, function (base64Img, url) {
+                                    images.push({
+                                        url: url,
+                                        data: base64Img.split(",")[1]
+                                    });
+                                });
+                            }
+                        }
+            
+                        if(nodes.length > 0) {
+                            get(nodes[nodes.length - 1].id);
+                            $("#max_id").append(nodes[nodes.length - 1].id + "\n");
+                        } else {
+                            createArchive(images);
+                        }
+                    },
+                    error: function (data) {
+                        alert("Error");
+                    }
+                });
+            }
+            
+         </script>
+      </center>
+   </body>
 </html>
